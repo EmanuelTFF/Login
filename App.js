@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { supabase } from "./lib/supabase";
 
 import LoginScreen from "./screens/LoginScreen";
-import SignupScreen from "./screens/SignupScreen"; // 👈 importa aqui
+import SignupScreen from "./screens/SignupScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
@@ -31,7 +31,7 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return null; // pode colocar ActivityIndicator ou splash aqui
+    return null;
   }
 
   return (
