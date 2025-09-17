@@ -8,7 +8,7 @@ export default function LoginScreen({ navigation }: any) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // mostra erro se login falhar
 
-  // 🔹 Função de login com Supabase
+  //  Função de login com Supabase
   const handleLogin = async () => {
     // tenta logar usando email + senha
     const { error } = await supabase.auth.signInWithPassword({
