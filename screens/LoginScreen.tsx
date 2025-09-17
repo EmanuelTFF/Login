@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }: any) {
       // se deu erro, guarda a mensagem no estado para exibir na tela
       setError(error.message);
     }
-    // se deu certo, o App.tsx já vai detectar a sessão e redirecionar (useEffect lá)
+    // se deu certo, o App.tsx já vai detectar a sessão e redirecionar
   };
 
   return (
