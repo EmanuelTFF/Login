@@ -3,25 +3,31 @@ import { View, TextInput, Button, Text, StyleSheet } from "react-native";
 import { supabase } from "../lib/supabase";
 
 export default function LoginScreen({ navigation }: any) {
+  // Estados para guardar o que o usuário digita
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // mostra erro se login falhar
 
+  // 🔹 Função de login com Supabase
   const handleLogin = async () => {
+    // tenta logar usando email + senha
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      // se deu erro, guarda a mensagem no estado para exibir na tela
       setError(error.message);
     }
+    // se deu certo, o App.tsx já vai detectar a sessão e redirecionar (useEffect lá)
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Entrar</Text>
 
+      {/* Campo de e-mail */}
       <TextInput
         style={styles.input}
         placeholder="E-mail"
@@ -30,6 +36,7 @@ export default function LoginScreen({ navigation }: any) {
         autoCapitalize="none"
       />
 
+      {/* Campo de senha */}
       <TextInput
         style={styles.input}
         placeholder="Senha"
@@ -38,9 +45,11 @@ export default function LoginScreen({ navigation }: any) {
         secureTextEntry
       />
 
+
       {error ? <Text style={{ color: "red" }}>{error}</Text> : null}
 
       <Button title="Entrar" onPress={handleLogin} />
+
 
       <Text
         style={styles.link}

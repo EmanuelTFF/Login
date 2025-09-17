@@ -1,27 +1,33 @@
 import { useEffect, useState } from "react";
-import { View, TextInput, Button, Image, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, TextInput, Image, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../lib/supabase";
 
 export default function ProfileScreen({ navigation }: any) {
+  // Estados do formulário
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [foto, setFoto] = useState("");
+  const [foto, setFoto] = useState(""); // guarda a URL da foto do perfil
   const [loading, setLoading] = useState(true);
 
+  // Guarda o perfil já salvo (para mostrar no "mini card")
   const [savedProfile, setSavedProfile] = useState<any>(null);
 
+  //  Executa quando o componente carrega
   useEffect(() => {
-    loadProfile();
+    loadProfile(); // busca dados do usuário no Supabase
   }, []);
 
+  //  Busca o perfil do usuário logado no Supabase
   async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      // se não estiver logado, manda para a tela de login
       navigation.replace("Login");
       return;
     }
 
+    // busca os dados do usuário na tabela "profiles"
     const { data } = await supabase
       .from("profiles")
       .select("*")
@@ -36,6 +42,7 @@ export default function ProfileScreen({ navigation }: any) {
     setLoading(false);
   }
 
+  //  Atualiza ou insere o perfil no banco (upsert = update ou insert)
   async function updateProfile() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -47,9 +54,11 @@ export default function ProfileScreen({ navigation }: any) {
       foto_url: foto,
     });
 
+    // atualiza o estado para mostrar o mini card atualizado
     setSavedProfile({ nome, descricao, foto_url: foto });
   }
 
+  // Abre a galeria para escolher uma foto
   async function pickImage() {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -58,10 +67,27 @@ export default function ProfileScreen({ navigation }: any) {
     });
 
     if (!result.canceled) {
+      // pega o caminho da imagem escolhida
       const uri = result.assets[0].uri;
-      setFoto(uri);
+      setFoto(uri); // salva no estado (ainda não salva no banco)
     }
   }
+
+  // Remove a foto do perfil (limpa no banco e no estado)
+  async function removePhoto() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // seta o campo foto_url como null no banco
+    await supabase.from("profiles").update({
+      foto_url: null,
+    }).eq("id", user.id);
+
+    // limpa o estado local
+    setFoto("");
+    setSavedProfile((prev: any) => prev ? { ...prev, foto_url: "" } : null);
+  }
+
 
   if (loading) return <Text style={styles.loading}>Carregando...</Text>;
 
@@ -69,11 +95,21 @@ export default function ProfileScreen({ navigation }: any) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Editar Perfil</Text>
 
+
       {foto ? <Image source={{ uri: foto }} style={styles.avatar} /> : null}
+
 
       <TouchableOpacity onPress={pickImage} style={styles.pickButton}>
         <Text style={styles.pickButtonText}>Escolher Foto</Text>
       </TouchableOpacity>
+
+
+      {foto ? (
+        <TouchableOpacity onPress={removePhoto} style={[styles.pickButton, { backgroundColor: "#d63031" }]}>
+          <Text style={styles.pickButtonText}>Remover Foto</Text>
+        </TouchableOpacity>
+      ) : null}
+
 
       <TextInput
         style={styles.input}
@@ -81,6 +117,8 @@ export default function ProfileScreen({ navigation }: any) {
         value={nome}
         onChangeText={setNome}
       />
+
+
       <TextInput
         style={[styles.input, { height: 80 }]}
         placeholder="Descrição"
@@ -89,11 +127,12 @@ export default function ProfileScreen({ navigation }: any) {
         multiline
       />
 
+
       <TouchableOpacity onPress={updateProfile} style={styles.saveButton}>
         <Text style={styles.saveButtonText}>Salvar</Text>
       </TouchableOpacity>
 
-      {/* Mini card */}
+
       {savedProfile && (
         <View style={styles.card}>
           {savedProfile.foto_url ? (
@@ -106,82 +145,3 @@ export default function ProfileScreen({ navigation }: any) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  loading: {
-    flex: 1,
-    textAlign: "center",
-    marginTop: 50,
-    fontSize: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 15,
-  },
-  pickButton: {
-    backgroundColor: "#6c5ce7",
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    marginBottom: 20,
-  },
-  pickButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
-    textAlignVertical: "top",
-  },
-  saveButton: {
-    backgroundColor: "#00b894",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    marginBottom: 20,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  card: {
-    width: "100%",
-    padding: 20,
-    borderRadius: 15,
-    backgroundColor: "#f1f2f6",
-    alignItems: "center",
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  cardAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 10,
-  },
-  cardNome: { fontWeight: "bold", fontSize: 20, marginBottom: 5 },
-  cardDescricao: { fontSize: 14, color: "#555", textAlign: "center" },
-});

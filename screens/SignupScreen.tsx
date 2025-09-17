@@ -3,29 +3,35 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 
 export default function SignupScreen({ navigation }: any) {
+  // Estados para capturar os valores digitados
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // controla o botão de "Cadastrar"
 
+  //  Função que executa o cadastro do usuário
   async function handleSignup() {
-    setLoading(true);
+    setLoading(true); // mostra "Cadastrando..." no botão
 
+    // cria usuário no Supabase (auth)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    setLoading(false);
+    setLoading(false); // volta ao estado normal
 
     if (error) {
+      // se deu erro, mostra alerta
       Alert.alert("Erro", error.message);
       return;
     }
 
+    // se cadastrou com sucesso, pede confirmação no e-mail
     Alert.alert(
       "Cadastro realizado",
       "Verifique seu e-mail para confirmar a conta!"
     );
+
 
     navigation.replace("Login");
   }
@@ -34,6 +40,7 @@ export default function SignupScreen({ navigation }: any) {
     <View style={styles.container}>
       <Text style={styles.title}>Criar conta</Text>
 
+      {/* Campo para digitar e-mail */}
       <TextInput
         style={styles.input}
         placeholder="Digite seu e-mail"
@@ -41,6 +48,7 @@ export default function SignupScreen({ navigation }: any) {
         value={email}
         onChangeText={setEmail}
       />
+
 
       <TextInput
         style={styles.input}
@@ -55,6 +63,7 @@ export default function SignupScreen({ navigation }: any) {
         onPress={handleSignup}
         disabled={loading}
       />
+
 
       <Text
         style={styles.link}
