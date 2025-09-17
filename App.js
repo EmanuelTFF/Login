@@ -34,7 +34,7 @@ export default function App() {
     };
   }, []);
 
-  // 🔹 Enquanto estiver carregando a sessão inicial, não renderiza nada
+  //  Enquanto estiver carregando a sessão inicial, não renderiza nada
   if (loading) {
     return null;
   }
